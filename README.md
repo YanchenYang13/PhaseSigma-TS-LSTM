@@ -1,5 +1,4 @@
 # Damage Proxy Mapping with Time Series Prediction of InSAR Phase Standard Deviation
-# README: Damage Proxy Mapping with Time Series Prediction of InSAR Phase Standard Deviation
 
 ## Overview
 
