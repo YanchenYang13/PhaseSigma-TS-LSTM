@@ -4,7 +4,92 @@
 
 This project focuses on generating **Damage Proxy Maps (DPMs)** using time series data derived from **Interferometric Synthetic Aperture Radar (InSAR)**. By leveraging predictions of InSAR phase standard deviation (STD) through a Long Short-Term Memory (LSTM) model, the project identifies surface displacements post-earthquake, which serve as proxies for assessing the extent of damage. The workflow involves preprocessing multi-temporal SAR images, constructing time series data, training a model for phase STD prediction, and calculating a damage score to map areas of significant change.
 
-### Key Features
+---
+
+## Input and Output
+
+The overall procedure for generating the Damage Proxy Map follows a clear input–output structure:
+
+### Input
+
+| Stage | Input Data | Description |
+|-------|------------|-------------|
+| Interferogram Generation | Registered multi-temporal SAR images | Co-registered Sentinel-1 SAR image stack covering pre- and post-disaster periods |
+| Time Series Construction | Sequential interferograms | Pixel-wise phase STD images derived from adjacent SAR image pairs |
+| Prediction Model | Pre-disaster phase STD sequences + Encoded timestamps | Chronologically arranged phase STD values with temporal features (year, month, day) |
+
+### Output
+
+| Stage | Output Data | Description |
+|-------|-------------|-------------|
+| Time Series Prediction | Hypothetical post-disaster phase STD | Predicted phase STD under the assumption that no disaster occurred |
+| Damage Mapping | Continuous Damage Proxy Map (DPM) | Pixel-wise damage score derived from the contrast between predicted and observed post-disaster phase STD |
+| Thresholding | Masked damage map | Binary or classified map for rapid delineation of impacted areas |
+
+### Workflow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              INPUT                                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Registered Multi-temporal SAR Images                                │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │  Sequential Interferograms    │
+                    │  (Adjacent Image Pairs)       │
+                    └───────────────────────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │  Pixel-wise Phase STD Images  │
+                    └───────────────────────────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    │                               │
+                    ▼                               ▼
+    ┌───────────────────────────┐   ┌───────────────────────────┐
+    │  Pre-disaster Phase STD   │   │  Post-disaster Phase STD  │
+    │  Sequences + Timestamps   │   │  (Observed)               │
+    └───────────────────────────┘   └───────────────────────────┘
+                    │                               │
+                    ▼                               │
+    ┌───────────────────────────┐                   │
+    │  LSTM Prediction Model    │                   │
+    └───────────────────────────┘                   │
+                    │                               │
+                    ▼                               │
+    ┌───────────────────────────┐                   │
+    │  Predicted Phase STD      │                   │
+    │  (No-disaster Assumption) │                   │
+    └───────────────────────────┘                   │
+                    │                               │
+                    └───────────────┬───────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │  Contrast / Comparison        │
+                    └───────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              OUTPUT                                         │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Continuous Damage Proxy Map (DPM)                                   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Masked Damage Map (Thresholded)                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Key Features
 
 1. **Data Preprocessing**:
 
@@ -87,4 +172,3 @@ The final step is the generation of **damage proxy maps (DPMs)**, which visualiz
 │   │   └── geom_reference/  # Geometry reference files (lat, lon, etc.)
 │   └── dataset/        # Final processed InSAR time series dataset
 ```
-
